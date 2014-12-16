@@ -1,0 +1,6 @@
+#ifndef __ZIGBEEREMOTEIO
+#define __ZIGBEEREMOTEIO
+  #define MAXZIGBEEID 16
+  #define MAXZIGBEEFRAME 100
+  #define PID 0x0002
+#endif
