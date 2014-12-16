@@ -1,11 +1,17 @@
 #line 1 "F:/MEOCloud/KPP/Electronica/PIC Progs/MikroC/ZigBee Remote IO V1.0/ZigbeeRemoteIOV1.0.c"
 #line 1 "f:/meocloud/kpp/electronica/pic progs/mikroc/zigbee remote io v1.0/zigbeeremoteio.h"
-#line 2 "F:/MEOCloud/KPP/Electronica/PIC Progs/MikroC/ZigBee Remote IO V1.0/ZigbeeRemoteIOV1.0.c"
+#line 3 "F:/MEOCloud/KPP/Electronica/PIC Progs/MikroC/ZigBee Remote IO V1.0/ZigbeeRemoteIOV1.0.c"
  char MY1[8]={0x7E,0x00,0x04,0x08,0x01,0x4D,0x59,0x50};
  unsigned char readbuff[64] absolute 0x600;
  unsigned char writebuff[64] absolute 0x640;
 
- char *HostZigbee;
+
+ typedef struct {
+ unsigned short enabled;
+ char *Address;
+ }ZigbeeSendDeviceInfo;
+
+ ZigbeeSendDeviceInfo ZigbeeSendDevices[ 2 ];
 
  unsigned short LocalIP[2];
 
@@ -70,14 +76,18 @@ void SendRawPacket(char* RawPacket,int len)
 
 }
 
-void SendDataPacket(char *toadress,char* DataPacket,int len,char Ack)
+void SendDataPacket(short brodcast,char* DataPacket,int len,char Ack)
 {
- int i, framesize2=14+len;
+ int k=0,i, framesize2=14+len;
  char DataToSend[50];
  unsigned short checkSum=0;
+ ZigbeeSendDeviceInfo ZigbeeSendDevice;
 
+ do{
 
+ ZigbeeSendDevice=ZigbeeSendDevices[k];
 
+ if(ZigbeeSendDevice.enabled==1 || brodcast==1){
  DataToSend[0]=0x7E;
  DataToSend[1]=0x00;
 
@@ -86,7 +96,7 @@ void SendDataPacket(char *toadress,char* DataPacket,int len,char Ack)
  DataToSend[4]=0x01;
 
 
- if( toadress==0 )
+ if( brodcast==1 )
  {
 
  DataToSend[5]=0;
@@ -98,31 +108,24 @@ void SendDataPacket(char *toadress,char* DataPacket,int len,char Ack)
  DataToSend[11]=0;
  DataToSend[12]=0;
  }
-
  else
  {
 
 
- DataToSend[5]=toadress[0];
- DataToSend[6]=toadress[1];
- DataToSend[7]=toadress[2];
- DataToSend[8]=toadress[3];
- DataToSend[9]=toadress[4];
- DataToSend[10]=toadress[5];
- DataToSend[11]=toadress[6];
- DataToSend[12]=toadress[7];
-
+ DataToSend[5]=ZigbeeSendDevice.Address[0];
+ DataToSend[6]=ZigbeeSendDevice.Address[1];
+ DataToSend[7]=ZigbeeSendDevice.Address[2];
+ DataToSend[8]=ZigbeeSendDevice.Address[3];
+ DataToSend[9]=ZigbeeSendDevice.Address[4];
+ DataToSend[10]=ZigbeeSendDevice.Address[5];
+ DataToSend[11]=ZigbeeSendDevice.Address[6];
+ DataToSend[12]=ZigbeeSendDevice.Address[7];
  }
-
-
-
 
  DataToSend[13]=0xFF;
  DataToSend[14]=0xFE;
 
-
  DataToSend[15]=0x00;
-
 
  DataToSend[16]=0x01;
 
@@ -159,7 +162,10 @@ void SendDataPacket(char *toadress,char* DataPacket,int len,char Ack)
  sprinti(writebuff,"\n");
  while(!hid_write(writebuff,64));
  }
-
+ if(brodcast==1) break;
+ }
+ }
+ while(k< 2 );
 }
 
 void ProcessZigBeeDataPacket(char* DataPacket,char *DevIP)
@@ -441,7 +447,7 @@ void ProcessZigBeeFrame()
 
  }
  }
-#line 457 "F:/MEOCloud/KPP/Electronica/PIC Progs/MikroC/ZigBee Remote IO V1.0/ZigbeeRemoteIOV1.0.c"
+#line 464 "F:/MEOCloud/KPP/Electronica/PIC Progs/MikroC/ZigBee Remote IO V1.0/ZigbeeRemoteIOV1.0.c"
 }
 
  char frame_started=0;
@@ -512,9 +518,9 @@ void ProcessZigBeeFrame()
  while(!hid_write(writebuff,64));
  }
  if(PICIN1LastState)
- SendDataPacket(HostZigbee,"OUT|1|OFF",9,0);
+ SendDataPacket(0,"OUT|1|OFF",9,0);
  else
- SendDataPacket(HostZigbee,"OUT|1|ON",8,0);
+ SendDataPacket(0,"OUT|1|ON",8,0);
  }
  else
  debounc_in1++;
@@ -530,10 +536,10 @@ void ProcessZigBeeFrame()
  while(!hid_write(writebuff,64));
  }
  if(PICIN2LastState){
- SendDataPacket(HostZigbee,"OUT|2|OFF",9,0);
+ SendDataPacket(0,"OUT|2|OFF",9,0);
  }
  else{
- SendDataPacket(HostZigbee,"OUT|2|ON",8,0);
+ SendDataPacket(0,"OUT|2|ON",8,0);
  }
  }
  else
@@ -548,9 +554,9 @@ void ProcessZigBeeFrame()
  while(!hid_write(writebuff,64));
  }
  if(PICIN3LastState)
- SendDataPacket(HostZigbee,"OUT|3|OFF",9,0);
+ SendDataPacket(0,"OUT|3|OFF",9,0);
  else
- SendDataPacket(HostZigbee,"OUT|3|ON",8,0);
+ SendDataPacket(0,"OUT|3|ON",8,0);
  }
  else
  debounc_in3++;
@@ -564,9 +570,9 @@ void ProcessZigBeeFrame()
  while(!hid_write(writebuff,64));
  }
  if(PICIN4LastState)
- SendDataPacket(HostZigbee,"OUT|4|OFF",9,0);
+ SendDataPacket(0,"OUT|4|OFF",9,0);
  else
- SendDataPacket(HostZigbee,"OUT|4|ON",8,0);
+ SendDataPacket(0,"OUT|4|ON",8,0);
  }
  else
  debounc_in4++;
@@ -577,24 +583,24 @@ void ProcessZigBeeFrame()
 
 
 
- void write_eeprom_from(char *str){
+ void write_eeprom_from(short startaddress,char *str){
  char hexstr[2];
  short hexval;
  int i=0,j=0;
- for(i=0;i<16;i=i+2){
+ for(i=0;i<strlen(str)*2;i=i+2){
  hexstr[0]=str[i];
  hexstr[1]=str[i+1];
  hexval=xtoi(hexstr);
- EEPROM_Write(0x01+j,hexval);
+ EEPROM_Write(startaddress+j,hexval);
  j++;
  }
  }
 
- void read_eeprom_to(char *dest){
+ void read_eeprom_to(short startadress,char *dest){
  int i;
 
  for(i=0;i<8;i++){
- dest[i]=EEPROM_Read(0x01+i);
+ dest[i]=EEPROM_Read(startadress+i);
 
 
 
@@ -610,6 +616,7 @@ void ProcessZigBeeFrame()
  char *CommandTrimmed[10];
  char del[2] = "|";
  char eeprom_readed;
+ short readaddress=0x01;
 
  delay_ms(1000);
 
@@ -617,7 +624,19 @@ void ProcessZigBeeFrame()
 
  MM_Init();
 
- HostZigbee=(unsigned short*)malloc(sizeof(char) *8);
+ for(i=0;i< 2 ;i++){
+
+ ZigbeeSendDevices[i].enabled=EEPROM_Read(readaddress++);
+ ZigbeeSendDevices[i].Address=(unsigned short*)malloc(sizeof(char) *8);
+
+ read_eeprom_to(readaddress,ZigbeeSendDevices[i].Address);
+
+ readaddress+=8;
+ }
+
+
+
+
 
 
  PICOUT1_Direction=0;
@@ -651,22 +670,12 @@ void ProcessZigBeeFrame()
  PIE1.RCIE = 1;
 
 
- if(HostZigbee == 0)
- {
- PICOUT1=1;
- PICOUT2=1;
- PICOUT3=1;
- PICOUT4=1;
-
- }
  if(USBON)
  HID_Enable(readbuff,writebuff);
 
 
 
  debug=0;
-
- read_eeprom_to(HostZigbee);
 
 
  SendRawPacket(MY1, 8);
@@ -682,7 +691,7 @@ void ProcessZigBeeFrame()
 
 
  ProcessInputs();
-#line 703 "F:/MEOCloud/KPP/Electronica/PIC Progs/MikroC/ZigBee Remote IO V1.0/ZigbeeRemoteIOV1.0.c"
+#line 713 "F:/MEOCloud/KPP/Electronica/PIC Progs/MikroC/ZigBee Remote IO V1.0/ZigbeeRemoteIOV1.0.c"
  if(JoinedToNet==0){
  PICOUT1=1;
  PICOUT2=0;
@@ -742,26 +751,40 @@ void ProcessZigBeeFrame()
  else if(strcmp(CommandTrimmed[0],"ZIGBEE")==0){
 
  if(strcmp(CommandTrimmed[1],"SET")==0){
- if(strcmp(CommandTrimmed[2],"HOST")==0){
-
- write_eeprom_from(CommandTrimmed[3]);
+ if(strcmp(CommandTrimmed[2],"DEVICE")==0){
+ int devnum=0;
+ devnum=atoi(CommandTrimmed[3]);
+ if(devnum>0 && devnum-1< 2 ){
+ int enabledval;
+ enabledval=atoi(CommandTrimmed[4]);
+ if(enabledval==0 || enabledval==1){
+ write_eeprom_from(0x01+(devnum-1)*8,CommandTrimmed[5]);
  delay_ms(100);
- read_eeprom_to(HostZigbee);
-
+ write_eeprom_from(0x02+(devnum-1)*8,CommandTrimmed[4]);
+ delay_ms(100);
+ read_eeprom_to(0x01+(devnum-1)*8,ZigbeeSendDevices[i].enabled);
+ delay_ms(100);
+ read_eeprom_to(0x02+(devnum-1)*8,ZigbeeSendDevices[i].Address);
+ }
+ }
  }
  }
 
  else if(strcmp(CommandTrimmed[1],"GET")==0){
- if(strcmp(CommandTrimmed[2],"HOST")==0){
+ if(strcmp(CommandTrimmed[2],"DEVICE")==0){
+ int devnum=0;
+ devnum=atoi(CommandTrimmed[3]);
+ if(devnum>0 && devnum-1< 2 ){
  int i,k=0;
  char hexval[3];
  char HostZigbeeStr[16];
  for(i=0;i<8;i++){
- ShortToHex(HostZigbee[i],HostZigbeeStr+k);
+ ShortToHex(ZigbeeSendDevices[devnum-1].Address,HostZigbeeStr+k);
  k=k+2;
  }
- sprinti(writebuff,"ZIGBEE|HOST|%s\n",HostZigbeeStr);
+ sprinti(writebuff,"ZIGBEE|DEVICE|%d|%s|%u\n",devnum,HostZigbeeStr,ZigbeeSendDevices[devnum-1].enabled);
  while(!hid_write(writebuff,64));
+ }
  }
  }
  else if(strcmp(CommandTrimmed[1],"MY")==0){

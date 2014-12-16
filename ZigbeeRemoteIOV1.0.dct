@@ -550,7 +550,6 @@ hlvdl2
 hlvdl2_bit
 hlvdl3
 hlvdl3_bit
-hostzigbee
 i2c_dat
 i2c_dat_bit
 i2c_read
@@ -1492,3 +1491,4 @@ xtoi
 z
 z_bit
 zigbeeframe
+zigbeesenddevices
