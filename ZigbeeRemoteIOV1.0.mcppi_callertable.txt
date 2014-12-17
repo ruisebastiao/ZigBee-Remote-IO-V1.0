@@ -9,12 +9,11 @@ main
 	__CC2DW
 	UART1_Init
 	MM_Init
-	Mul_16x16_U
-	EEPROM_Read
 	Malloc
 		MM_GetMemAlign
 		MM_Defragment
 			MM_CheckBlocks
+	EEPROM_Read
 	read_eeprom_to
 		EEPROM_Read
 	HID_Enable
@@ -28,8 +27,6 @@ main
 		USB_Attach_Device
 			USB_Configure
 			USB_Enable_Interrupts
-	SendRawPacket
-		UART1_Write
 	ProcessZigBeeFrame
 		sprinti
 			_doprnti
@@ -83,7 +80,6 @@ main
 					Mul_16x16_U
 					Do_Fill
 					Div_16x16_U
-			Mul_16x16_U
 			HID_Write
 				Gen_Write
 					USB_Handle_Busy
@@ -120,14 +116,12 @@ main
 				Mul_16x16_U
 				Do_Fill
 				Div_16x16_U
-		Mul_16x16_U
 		HID_Write
 			Gen_Write
 				USB_Handle_Busy
 				USB_Transfer_Packet_Int
 		UART1_Write
 	write_eeprom_from
-		strlen
 		xtoi
 			isspace
 			isxdigit
@@ -137,6 +131,8 @@ main
 			isdigit
 		EEPROM_Write
 	ShortToHex
+	SendRawPacket
+		UART1_Write
 interrupt
 	USB_Interrupt_Proc
 		USB_Wake_From_Suspend

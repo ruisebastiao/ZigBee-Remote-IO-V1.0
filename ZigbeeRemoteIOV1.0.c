@@ -6,10 +6,10 @@
   //---------------------------------------------------------------------------------------------------
   
   typedef struct {
-         unsigned short enabled;
-         char *Address;
+         unsigned enabled;
+         unsigned short *Address;
   }ZigbeeSendDeviceInfo;
-  
+
   ZigbeeSendDeviceInfo ZigbeeSendDevices[ZIGBEEDEVICES];
   
   unsigned short  LocalIP[2];
@@ -75,18 +75,19 @@ void SendRawPacket(char* RawPacket,int len)
 
 }
 
-void SendDataPacket(short brodcast,char* DataPacket,int len,char Ack)
+void SendDataPacket(short broadcast,char* DataPacket,int len,char Ack)
 {
-   int k=0,i, framesize2=14+len;
+
+   ZigbeeSendDeviceInfo  ZigbeeSendDevice;
+   int k=0;
+   do{
+   int i=0, framesize2=14+len;
    char DataToSend[50];
    unsigned short checkSum=0;
-   ZigbeeSendDeviceInfo  ZigbeeSendDevice;
-   
-   do{
    
     ZigbeeSendDevice=ZigbeeSendDevices[k];
     
-    if(ZigbeeSendDevice.enabled==1 || brodcast==1){
+    if(ZigbeeSendDevice.enabled==1 || broadcast==1){
        DataToSend[0]=0x7E;
        DataToSend[1]=0x00;
 
@@ -95,7 +96,7 @@ void SendDataPacket(short brodcast,char* DataPacket,int len,char Ack)
        DataToSend[4]=0x01;
 
 
-       if( brodcast==1 )
+       if( broadcast==1 )
        {
           //Broadcast
           DataToSend[5]=0;
@@ -145,8 +146,9 @@ void SendDataPacket(short brodcast,char* DataPacket,int len,char Ack)
         //checksum
         DataToSend[i]=checkSum;
         if(debug==1 && USBON){
-          sprinti(writebuff,"Packet: ");
+          sprinti(writebuff,"\nPacket: ");
           while(!hid_write(writebuff,64));
+          delay_ms(1);
         }
    
         for( i=0; i<framesize2+4; i++ )
@@ -155,14 +157,17 @@ void SendDataPacket(short brodcast,char* DataPacket,int len,char Ack)
           if(debug==1 && USBON){
             sprinti(writebuff,"%X",DataToSend[i]);
             while(!hid_write(writebuff,64));
+            delay_ms(1);
           }
         }
         if(debug==1 && USBON){
           sprinti(writebuff,"\n");
           while(!hid_write(writebuff,64));
+          delay_ms(1);
         }
-        if(brodcast==1) break;
+        if(broadcast==1) break;
        }
+       k++;
        }
        while(k<ZIGBEEDEVICES);
 }
@@ -596,30 +601,31 @@ void ProcessZigBeeFrame()
   
 
   
-  void write_eeprom_from(short startaddress,char *str){
-       char hexstr[2];
-       short hexval;
+  void write_eeprom_from(unsigned int startaddress,char *str){
+       char hexstr[3];
+       //char str2[16]={'0','0','1','3','A','2','0','0','4','0','7','9','D','6','B','A'};
+       unsigned hexval;
        int i=0,j=0;
-       for(i=0;i<strlen(str)*2;i=i+2){
+       for(i=0;i<16;i=i+2){
          hexstr[0]=str[i];
          hexstr[1]=str[i+1];
+         hexstr[2]='\0';
          hexval=xtoi(hexstr);
          EEPROM_Write(startaddress+j,hexval);
+         delay_ms(20);
          j++;
       }
   }
   
-  void read_eeprom_to(short startadress,char *dest){
+  void read_eeprom_to(unsigned int startadress,char *dest){
     int i;
 
    for(i=0;i<8;i++){
+     delay_ms(30);
      dest[i]=EEPROM_Read(startadress+i);
 
-     // ByteToHex(HostZigbeeShort[k],str+i);
-//      ByteToHex(EEPROM_Read(0x01+k),str+i+1);
-//      k++;
-      }
-//     str[17]='\0';
+   }
+
   }
   void main() {
 
@@ -629,7 +635,7 @@ void ProcessZigBeeFrame()
    char *CommandTrimmed[10];
    char del[2] = "|";
    char eeprom_readed;
-   short readaddress=0x01;
+
    
    delay_ms(1000);
    
@@ -637,16 +643,10 @@ void ProcessZigBeeFrame()
    
    MM_Init();
 
-   for(i=0;i<ZIGBEEDEVICES;i++){
-
-         ZigbeeSendDevices[i].enabled=EEPROM_Read(readaddress++);
-         ZigbeeSendDevices[i].Address=(unsigned short*)malloc(sizeof(char) *8);
-         
-         read_eeprom_to(readaddress,ZigbeeSendDevices[i].Address);
-
-        readaddress+=8;
+   for(i=0;i<10;i++){
+      CommandTrimmed[i]=(char *)malloc(sizeof(char)*30);
+      if(CommandTrimmed[i]==0) PICOUT4=1;
    }
-
 //   HostZigbee=;
    
    
@@ -683,6 +683,16 @@ void ProcessZigBeeFrame()
  PIE1.RCIE = 1; //enable interrupt.
  
 
+       for(i=0;i<ZIGBEEDEVICES;i++){
+
+          ZigbeeSendDevices[i].enabled=EEPROM_Read(0x01+(i*8));
+          ZigbeeSendDevices[i].Address=(unsigned short*)malloc(sizeof(char) *8);
+          delay_ms(20);
+          read_eeprom_to(0x02+(i*8),ZigbeeSendDevices[i].Address);
+          delay_ms(20);
+        }
+        
+
     if(USBON)
      HID_Enable(readbuff,writebuff);      // Enable HID communication
 
@@ -691,7 +701,7 @@ void ProcessZigBeeFrame()
    debug=0;
 
 
-   SendRawPacket(MY1, 8);
+   //SendRawPacket(MY1, 8);
    while(1)
    {
 
@@ -704,26 +714,14 @@ void ProcessZigBeeFrame()
     
     
      ProcessInputs();
-/*if(PROG==0){
-          delay_ms(100);
-          strcpy(writebuff,"PROG\n");
-         while(!hid_write(writebuff,64));
-     }*/
-    
-    if(JoinedToNet==0){
-      PICOUT1=1;
-      PICOUT2=0;
-    }
-    
-    if(JoinedToNet==2){
-      PICOUT2=1;
-      PICOUT1=0;
-    }
+
+
      if(USBON){
+
       if(!(hid_read()==0)) {
        i=0;
        
-
+       PICOUT1=!PICOUT1;
 
      /* get the first token */
        CommandTrimmed[0]=strtok(DeleteChar(DeleteChar(readbuff,'\r'),'\n'), del);
@@ -765,7 +763,9 @@ void ProcessZigBeeFrame()
         sprinti(writebuff,"KPP ZIGBEE BOARD V1.1\n");
         while(!hid_write(writebuff,64));
      }
+     else if(strcmp(CommandTrimmed[0],"READ")==0){
 
+     }
      else if(strcmp(CommandTrimmed[0],"ZIGBEE")==0){
      
           if(strcmp(CommandTrimmed[1],"SET")==0){
@@ -776,12 +776,9 @@ void ProcessZigBeeFrame()
                  int enabledval;
                  enabledval=atoi(CommandTrimmed[4]);
                  if(enabledval==0 || enabledval==1){
-                   write_eeprom_from(0x01+(devnum-1)*8,CommandTrimmed[5]);
-                   delay_ms(100);
-                   write_eeprom_from(0x02+(devnum-1)*8,CommandTrimmed[4]);
-                   delay_ms(100);
+                   write_eeprom_from(0x01+(devnum-1)*8,CommandTrimmed[4]);
+                   write_eeprom_from(0x02+(devnum-1)*8,CommandTrimmed[5]);
                    read_eeprom_to(0x01+(devnum-1)*8,ZigbeeSendDevices[i].enabled);
-                   delay_ms(100);
                    read_eeprom_to(0x02+(devnum-1)*8,ZigbeeSendDevices[i].Address);
                  }
                }
@@ -797,10 +794,10 @@ void ProcessZigBeeFrame()
                  char hexval[3];
                  char HostZigbeeStr[16];
                  for(i=0;i<8;i++){
-                   ShortToHex(ZigbeeSendDevices[devnum-1].Address,HostZigbeeStr+k);
+                   ShortToHex(ZigbeeSendDevices[devnum-1].Address[i],HostZigbeeStr+k);
                    k=k+2;
                  }
-                 sprinti(writebuff,"ZIGBEE|DEVICE|%d|%s|%u\n",devnum,HostZigbeeStr,ZigbeeSendDevices[devnum-1].enabled);
+                 sprinti(writebuff,"ZIGBEE|DEVICE|%d|%s|%d\n",devnum,HostZigbeeStr,ZigbeeSendDevices[devnum-1].enabled);
                  while(!hid_write(writebuff,64));
                 }
                }
