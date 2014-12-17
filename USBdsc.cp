@@ -1,8 +1,7 @@
 #line 1 "F:/MEOCloud/KPP/Electronica/PIC Progs/MikroC/ZigBee Remote IO V1.0/USBdsc.c"
-#line 1 "f:/meocloud/kpp/electronica/pic progs/mikroc/zigbee remote io v1.0/zigbeeremoteio.h"
-#line 2 "F:/MEOCloud/KPP/Electronica/PIC Progs/MikroC/ZigBee Remote IO V1.0/USBdsc.c"
+
 const unsigned int USB_VENDOR_ID = 0x0001;
-const unsigned int USB_PRODUCT_ID =  0x0002 ;
+const unsigned int USB_PRODUCT_ID =0x0002;
 const char USB_SELF_POWER = 0x80;
 const char USB_MAX_POWER = 50;
 const char HID_INPUT_REPORT_BYTES = 64;

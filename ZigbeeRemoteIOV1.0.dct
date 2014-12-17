@@ -288,10 +288,7 @@ dc2b0
 dc2b0_bit
 dc2b1
 dc2b1_bit
-debounc_in1
-debounc_in2
-debounc_in3
-debounc_in4
+debounceval
 debug
 dec2bcd
 dec2bcd16
@@ -509,6 +506,7 @@ gen_enable
 gen_read
 gen_write
 get_fosc_khz
+getzigbeeindex
 gie
 gie_bit
 gie_gieh
@@ -572,6 +570,7 @@ imanufacturer
 indf0
 indf1
 indf2
+inputs
 int0
 int0_bit
 int0e
@@ -764,6 +763,7 @@ mul_8x8_s
 my1
 n
 n_bit
+nd
 not_a
 not_a_bit
 not_address
@@ -809,6 +809,7 @@ oscfip_bit
 osctune
 osts
 osts_bit
+outputs
 ov
 ov_bit
 p
@@ -853,16 +854,12 @@ pgm
 pgm_bit
 picin1
 picin1_direction
-picin1laststate
 picin2
 picin2_direction
-picin2laststate
 picin3
 picin3_direction
-picin3laststate
 picin4
 picin4_direction
-picin4laststate
 picout1
 picout1_direction
 picout2
@@ -909,6 +906,7 @@ preinc0
 preinc1
 preinc2
 processinputs
+processnetworkstate
 processzigbeedatapacket
 processzigbeeframe
 prod
@@ -1066,7 +1064,10 @@ sen_bit
 sendb
 sendb_bit
 senddatapacket
+senddatapacket2all
+sendiostodevice
 sendrawpacket
+sendstr
 setfdz32
 setfov32
 setfun32

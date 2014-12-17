@@ -14,6 +14,7 @@ main
 		MM_Defragment
 			MM_CheckBlocks
 	EEPROM_Read
+	Mul_16x16_U
 	read_eeprom_to
 		EEPROM_Read
 	HID_Enable
@@ -27,6 +28,8 @@ main
 		USB_Attach_Device
 			USB_Configure
 			USB_Enable_Interrupts
+	SendRawPacket
+		UART1_Write
 	ProcessZigBeeFrame
 		sprinti
 			_doprnti
@@ -55,6 +58,45 @@ main
 				strcspn
 					strchr
 			strcmp
+			SendIOsToDevice
+				sprinti
+					_doprnti
+						Set_Flgs
+						isdigit
+						Mul_16x16_U
+						Do_Fill
+						Div_16x16_U
+				Mul_16x16_U
+				strlen
+				SendDataPacket
+					sprinti
+						_doprnti
+							Set_Flgs
+							isdigit
+							Mul_16x16_U
+							Do_Fill
+							Div_16x16_U
+					HID_Write
+						Gen_Write
+							USB_Handle_Busy
+							USB_Transfer_Packet_Int
+					UART1_Write
+				SendDataPacket2All
+					SendDataPacket
+						sprinti
+							_doprnti
+								Set_Flgs
+								isdigit
+								Mul_16x16_U
+								Do_Fill
+								Div_16x16_U
+						HID_Write
+							Gen_Write
+								USB_Handle_Busy
+								USB_Transfer_Packet_Int
+						UART1_Write
+		getZigbeeIndex
+			strcmp
 		strcpy
 		HID_Write
 			Gen_Write
@@ -68,10 +110,60 @@ main
 				Mul_16x16_U
 				Do_Fill
 				Div_16x16_U
-		HID_Write
-			Gen_Write
-				USB_Handle_Busy
-				USB_Transfer_Packet_Int
+		Mul_16x16_U
+		strlen
+		SendDataPacket2All
+			SendDataPacket
+				sprinti
+					_doprnti
+						Set_Flgs
+						isdigit
+						Mul_16x16_U
+						Do_Fill
+						Div_16x16_U
+				HID_Write
+					Gen_Write
+						USB_Handle_Busy
+						USB_Transfer_Packet_Int
+				UART1_Write
+	ProcessNetworkState
+		SendIOsToDevice
+			sprinti
+				_doprnti
+					Set_Flgs
+					isdigit
+					Mul_16x16_U
+					Do_Fill
+					Div_16x16_U
+			Mul_16x16_U
+			strlen
+			SendDataPacket
+				sprinti
+					_doprnti
+						Set_Flgs
+						isdigit
+						Mul_16x16_U
+						Do_Fill
+						Div_16x16_U
+				HID_Write
+					Gen_Write
+						USB_Handle_Busy
+						USB_Transfer_Packet_Int
+				UART1_Write
+			SendDataPacket2All
+				SendDataPacket
+					sprinti
+						_doprnti
+							Set_Flgs
+							isdigit
+							Mul_16x16_U
+							Do_Fill
+							Div_16x16_U
+					HID_Write
+						Gen_Write
+							USB_Handle_Busy
+							USB_Transfer_Packet_Int
+					UART1_Write
 		SendDataPacket
 			sprinti
 				_doprnti
@@ -131,8 +223,6 @@ main
 			isdigit
 		EEPROM_Write
 	ShortToHex
-	SendRawPacket
-		UART1_Write
 interrupt
 	USB_Interrupt_Proc
 		USB_Wake_From_Suspend
