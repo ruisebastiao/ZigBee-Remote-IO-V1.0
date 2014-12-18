@@ -13,7 +13,7 @@ short getZigbeeIndex(char *Address64,char *Address16){
   int i=0;
      if(Address64!=0){
        for(i=0;i<ZIGBEEDEVICES;i++){
-         if(strcmp(Address64,ZigbeeSendDevices[i].Address64)==0){
+         if(strncmp(Address64,ZigbeeSendDevices[i].Address64,8)==0){
           return i;
         }
       }
@@ -45,7 +45,7 @@ void SendDataPacket(char *sendto,char* DataPacket,int len,char Ack);
 void SendDataPacket2All(char* DataPacket,int len,char Ack){
  int i=0;
      for(i=0;i<ZIGBEEDEVICES;i++){
-       if(ZigbeeSendDevices[i].Enabled==1){
+       if(ZigbeeSendDevices[i].Enabled==1 && ZigbeeSendDevices[i].Connected==1){
          SendDataPacket(ZigbeeSendDevices[i].Address64,DataPacket,len,Ack);
        }
      }
@@ -516,17 +516,18 @@ void ProcessZigBeeFrame()
    
   }
   
+
   void ProcessNetworkState(){
      int i;
-     char SendStr[10];
-     for(i=0;i<ZIGBEEDEVICES;i++){
-            if(ZigbeeSendDevices[i].Connected!=ZigbeeSendDevices[i].LastConnected){
 
+     for(i=0;i<ZIGBEEDEVICES;i++){
+         if(ZigbeeSendDevices[i].Connected==1){
+            if(ZigbeeSendDevices[i].Connected!=ZigbeeSendDevices[i].LastConnected){
               ZigbeeSendDevices[i].LastConnected=ZigbeeSendDevices[i].Connected;
-              if(ZigbeeSendDevices[i].Connected==1){
                 SendIOsToDevice(ZigbeeSendDevices[i].Address64);
                 SendDataPacket(ZigbeeSendDevices[i].Address64,"IO|GETSTATE",11,0);
-              }
+                PICOUT4=!PICOUT4;
+            }
             }
      }
      
@@ -542,7 +543,7 @@ void ProcessZigBeeFrame()
   }
 
 
-char SendStr[10];
+  char SendStr[10];
   void ProcessInputs(){
 
 
@@ -634,6 +635,7 @@ char SendStr[10];
    PICOUT3=0;
    PICOUT4_Direction=0;
    PICOUT4=0;
+
 
 
     // Init Inputs

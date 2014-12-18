@@ -96,6 +96,7 @@ main
 								USB_Transfer_Packet_Int
 						UART1_Write
 		getZigbeeIndex
+			strncmp
 			strcmp
 		strcpy
 		HID_Write
